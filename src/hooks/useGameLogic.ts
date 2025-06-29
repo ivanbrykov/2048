@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 
 interface Tile {
   id: number;
@@ -27,7 +27,6 @@ const useGameLogic = () => {
   const [grid, setGrid] = useState<Tile[]>([]);
   const [score, setScore] = useState(0);
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
-  const tileIdRef = useRef(0);
 
   const getRandomEmptyTilePosition = useCallback((currentGrid: Tile[]): Tile | null => {
     const emptyTiles = currentGrid.filter(tile => tile.value === 0);
@@ -53,7 +52,7 @@ const useGameLogic = () => {
     const initialTiles: Tile[] = [];
     for (let y = 0; y < 4; y++) {
       for (let x = 0; x < 4; x++) {
-        initialTiles.push(createTile(tileIdRef.current++, 0, x, y));
+        initialTiles.push(createTile(y * 4 + x, 0, x, y));
       }
     }
 
@@ -74,7 +73,7 @@ const useGameLogic = () => {
     setGrid(gridWithTwoTiles);
     setScore(0);
     setGameState(GameState.Playing);
-  }, [getRandomEmptyTilePosition, tileIdRef]);
+  }, [getRandomEmptyTilePosition]);
 
   const slide = useCallback((tilesInLine: Tile[], direction: 'left' | 'right' | 'up' | 'down') => {
     let currentScore = 0;
