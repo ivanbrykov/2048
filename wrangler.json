@@ -1,0 +1,8 @@
+{
+  "name": "2048",
+  "main": "src/worker.ts",
+  "compatibility_date": "2023-07-24",
+  "site": {
+    "bucket": "./dist"
+  }
+}
