@@ -9,6 +9,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "2048@workspace:."
   dependencies:
+    "@cloudflare/workers-types": "npm:^4.20250628.0"
     "@eslint/js": "npm:^9.29.0"
     "@tailwindcss/vite": "npm:^4.1.11"
     "@types/react": "npm:^19.1.8"
@@ -231,6 +232,13 @@ __metadata:
     "@babel/helper-string-parser": "npm:^7.27.1"
     "@babel/helper-validator-identifier": "npm:^7.27.1"
   checksum: 10c0/1d1dcb5fa7cfba2b4034a3ab99ba17049bfc4af9e170935575246cdb1cee68b04329a0111506d9ae83fb917c47dbd4394a6db5e32fbd041b7834ffbb17ca086b
+  languageName: node
+  linkType: hard
+
+"@cloudflare/workers-types@npm:^4.20250628.0":
+  version: 4.20250628.0
+  resolution: "@cloudflare/workers-types@npm:4.20250628.0"
+  checksum: 10c0/3ce69ca15edc93556f93a26f91519515d74b2ce2b228210b9871c45d45e35ee398da083836784613e6ef89c4ab30feda6590a2d4024297e016860ba466b160ef
   languageName: node
   linkType: hard
 
