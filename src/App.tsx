@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import clsx from 'clsx';
 import './App.css'
 import useGameLogic, { GameState } from './hooks/useGameLogic';
 
@@ -88,11 +89,12 @@ function App() {
         {grid.map((tile) => (
           <div
             key={tile.id}
-            className={`w-16 h-16 md:w-24 md:h-24 rounded-lg flex items-center justify-center text-2xl font-bold transition-all duration-150 ease-in-out
-              ${getTileClass(tile.value)}
-              ${tile.isNew ? 'animate-pop' : ''}
-              ${tile.isMerged ? 'animate-pop' : ''}
-            `}
+            className={clsx(
+              'w-16 h-16 md:w-24 md:h-24 rounded-lg flex items-center justify-center text-2xl font-bold transition-all duration-150 ease-in-out',
+              getTileClass(tile.value),
+              tile.isNew && 'animate-pop',
+              tile.isMerged && 'animate-pop'
+            )}
             style={{
               '--x-pos': tile.x,
               '--y-pos': tile.y,
