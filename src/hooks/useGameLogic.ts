@@ -1,3 +1,4 @@
+import { sample } from 'es-toolkit';
 import { useState, useCallback } from 'react';
 
 interface Tile {
@@ -21,20 +22,44 @@ export const GameState = {
 
 type GameState = typeof GameState[keyof typeof GameState];
 
+const getRandomEmptyTilePosition = (currentGrid: Tile[][]) => {
+  return sample(currentGrid.flat().filter(tile => tile.value === 0));
+};
+
+const initializeGrid = () => {
+  const initialGrid: Tile[][] = [];
+  for (let y = 0; y < 4; y++) {
+    initialGrid.push([]);
+    for (let x = 0; x < 4; x++) {
+      initialGrid[y].push(createTile(y * 4 + x, 0, x, y));
+    }
+  }
+
+  const addRandomTile = (gridArr: Tile[][], value?: number) => {
+    const emptyTile = getRandomEmptyTilePosition(gridArr);
+    if (emptyTile) {
+      const newValue = value !== undefined ? value : (Math.random() < 0.9 ? 2 : 4);
+      const newGrid = gridArr.map(row => row.map(tile =>
+        tile.id === emptyTile.id ? { ...tile, value: newValue, isNew: true } : tile
+      ));
+      return newGrid;
+    }
+    return gridArr;
+  };
+
+  let gridWithTwoTiles = addRandomTile(initialGrid);
+  gridWithTwoTiles = addRandomTile(gridWithTwoTiles);
+
+  return gridWithTwoTiles
+}
+
 const useGameLogic = () => {
-  const [grid, setGrid] = useState<Tile[][]>([]);
+  const [grid, setGrid] = useState<Tile[][]>(initializeGrid());
   const [score, setScore] = useState(0);
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
 
-  const getRandomEmptyTilePosition = useCallback((currentGrid: Tile[]): Tile | null => {
-    const emptyTiles = currentGrid.filter(tile => tile.value === 0);
-    if (emptyTiles.length === 0) return null;
-    const randomIndex = Math.floor(Math.random() * emptyTiles.length);
-    return emptyTiles[randomIndex];
-  }, []);
-
   const addNewTile = useCallback((currentGrid: Tile[][]): { updatedTiles: Tile[][], newTile?: Tile } => {
-    const emptyTile = getRandomEmptyTilePosition(currentGrid.flat());
+    const emptyTile = getRandomEmptyTilePosition(currentGrid);
     if (emptyTile) {
       const newValue = Math.random() < 0.9 ? 2 : 4;
       const newTile = { ...emptyTile, value: newValue, isNew: true };
@@ -44,37 +69,7 @@ const useGameLogic = () => {
       return { updatedTiles: updatedGrid, newTile };
     }
     return { updatedTiles: currentGrid.map(row => row.map(tile => ({ ...tile, isNew: false, isMerged: false })) ) };
-  }, [getRandomEmptyTilePosition]);
-
-  const initializeGrid = useCallback(() => {
-    const initialGrid: Tile[][] = [];
-    for (let y = 0; y < 4; y++) {
-      initialGrid.push([]);
-      for (let x = 0; x < 4; x++) {
-        initialGrid[y].push(createTile(y * 4 + x, 0, x, y));
-      }
-    }
-
-    const addRandomTile = (gridArr: Tile[][], value?: number) => {
-      const flatGrid = gridArr.flat();
-      const emptyTile = getRandomEmptyTilePosition(flatGrid);
-      if (emptyTile) {
-        const newValue = value !== undefined ? value : (Math.random() < 0.9 ? 2 : 4);
-        const newGrid = gridArr.map(row => row.map(tile =>
-          tile.id === emptyTile.id ? { ...tile, value: newValue, isNew: true } : tile
-        ));
-        return newGrid;
-      }
-      return gridArr;
-    };
-
-    let gridWithTwoTiles = addRandomTile(initialGrid);
-    gridWithTwoTiles = addRandomTile(gridWithTwoTiles);
-
-    setGrid(gridWithTwoTiles);
-    setScore(0);
-    setGameState(GameState.Playing);
-  }, [getRandomEmptyTilePosition]);
+  }, []);
 
   const slide = useCallback((tilesInLine: Tile[], direction: 'left' | 'right' | 'up' | 'down') => {
     let currentScore = 0;
@@ -171,12 +166,12 @@ const useGameLogic = () => {
     return currentGrid.flat().some(tile => tile.value === 2048);
   }, []);
 
-  const move = useCallback((currentGrid: Tile[][], direction: 'left' | 'right' | 'up' | 'down') => {
+  const move = useCallback((direction: 'left' | 'right' | 'up' | 'down') => {
     let changed = false;
     let totalScoreIncrease = 0;
 
     // Create a deep copy of the current grid to work on
-    let newGrid: Tile[][] = currentGrid.map(row => row.map(tile => ({ ...tile, isNew: false, isMerged: false })));
+    let newGrid: Tile[][] = grid.map(row => row.map(tile => ({ ...tile, isNew: false, isMerged: false })));
 
     if (direction === 'left' || direction === 'right') {
       for (let y = 0; y < 4; y++) {
@@ -230,7 +225,7 @@ const useGameLogic = () => {
     }
 
     return { finalGrid: newGrid, changed, scoreIncrease: totalScoreIncrease, isGameOver, isGameWon, newTile };
-  }, [slide, addNewTile, checkGameWon, checkGameOver, setScore, setGameState]);
+  }, [grid, slide, addNewTile, checkGameWon, checkGameOver]);
 
   return {
     grid,

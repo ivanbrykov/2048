@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
-import { motion } from 'framer-motion';
 import useGameLogic, { GameState } from './hooks/useGameLogic';
 
 function App() {
-  const { grid, score, gameState, initializeGrid, move, setGrid } = useGameLogic();
+  const { grid, score, gameState, move, setGrid } = useGameLogic();
 
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
@@ -12,12 +11,12 @@ function App() {
   const handleMove = useCallback((direction: 'left' | 'right' | 'up' | 'down') => {
     if (gameState !== GameState.Playing) return; // Prevent moves if game is over or won
 
-    const { finalGrid, changed } = move(grid, direction); // Pass current grid to move
+    const { finalGrid, changed } = move(direction); // Pass current grid to move
 
     if (changed) {
       setGrid(finalGrid);
     }
-  }, [gameState, move, grid, setGrid]);
+  }, [gameState, move, setGrid]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
@@ -74,9 +73,9 @@ function App() {
     };
   }, [handleKeyDown]);
 
-  useEffect(() => {
-    initializeGrid();
-  }, [initializeGrid]);
+  // useEffect(() => {
+  //   initializeGrid();
+  // }, [initializeGrid]);
 
   return (
     <div
@@ -88,28 +87,28 @@ function App() {
       <div className="w-[90vw] h-[90vw] md:w-[600px] md:h-[600px] @container/main relative flex flex-col">
         <div className="grid grid-cols-4 gap-[3cqw] grid-rows-4 bg-gray-700 p-[3cqw] rounded-lg grow">
           {grid.flat().map((tile) => (
-            <motion.div
+            <div
               key={tile.id}
               className={clsx(
                 'rounded-lg flex items-center justify-center text-2xl font-bold',
                 getTileClass(tile.value),
               )}
-              initial={{
-                opacity: tile.isNew ? 0 : 1,
-                scale: tile.isNew ? 0 : 1,
-              }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-              }}
-              transition={{
-                opacity: { duration: 0.15, ease: 'easeOut' },
-                scale: { duration: 0.15, ease: 'easeOut' },
-              }}
-              layout
+              // initial={{
+              //   opacity: tile.isNew ? 0 : 1,
+              //   scale: tile.isNew ? 0 : 1,
+              // }}
+              // animate={{
+              //   opacity: 1,
+              //   scale: 1,
+              // }}
+              // transition={{
+              //   opacity: { duration: 0.15, ease: 'easeOut' },
+              //   scale: { duration: 0.15, ease: 'easeOut' },
+              // }}
+              // layout
             >
               {tile.value !== 0 ? tile.value : ''}
-            </motion.div>
+            </div>
           ))}
 
         </div>
