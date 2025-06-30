@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
-import './App.css'
+import { motion } from 'framer-motion';
 import useGameLogic, { GameState } from './hooks/useGameLogic';
 
 function App() {
@@ -85,25 +85,34 @@ function App() {
       onTouchEnd={handleTouchEnd}
     >
       <div className="mb-4 text-2xl font-bold">Score: {score}</div>
-      <div className="grid grid-cols-4 gap-4 bg-gray-700 p-4 rounded-lg relative">
-        {grid.map((tile) => (
-          <div
-            key={tile.id}
-            className={clsx(
-              'w-16 h-16 md:w-24 md:h-24 rounded-lg flex items-center justify-center text-2xl font-bold transition-all duration-150 ease-in-out',
-              getTileClass(tile.value),
-              tile.isNew && 'animate-pop',
-              tile.isMerged && 'animate-pop'
-            )}
-            style={{
-              '--x-pos': tile.x,
-              '--y-pos': tile.y,
-            } as React.CSSProperties}
-          >
-            {tile.value !== 0 ? tile.value : ''}
-          </div>
-        ))}
+      <div className="w-[90vw] h-[90vw] md:w-[600px] md:h-[600px] @container/main relative flex flex-col">
+        <div className="grid grid-cols-4 gap-[3cqw] grid-rows-4 bg-gray-700 p-[3cqw] rounded-lg grow">
+          {grid.flat().map((tile) => (
+            <motion.div
+              key={tile.id}
+              className={clsx(
+                'rounded-lg flex items-center justify-center text-2xl font-bold',
+                getTileClass(tile.value),
+              )}
+              initial={{
+                opacity: tile.isNew ? 0 : 1,
+                scale: tile.isNew ? 0 : 1,
+              }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+              }}
+              transition={{
+                opacity: { duration: 0.15, ease: 'easeOut' },
+                scale: { duration: 0.15, ease: 'easeOut' },
+              }}
+              layout
+            >
+              {tile.value !== 0 ? tile.value : ''}
+            </motion.div>
+          ))}
 
+        </div>
       </div>
 
       {(gameState === GameState.GameOver) && (

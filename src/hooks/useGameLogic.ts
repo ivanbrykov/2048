@@ -5,8 +5,6 @@ interface Tile {
   value: number;
   x: number;
   y: number;
-  prevX?: number;
-  prevY?: number;
   isNew: boolean;
   isMerged: boolean;
 }
@@ -24,7 +22,7 @@ export const GameState = {
 type GameState = typeof GameState[keyof typeof GameState];
 
 const useGameLogic = () => {
-  const [grid, setGrid] = useState<Tile[]>([]);
+  const [grid, setGrid] = useState<Tile[][]>([]);
   const [score, setScore] = useState(0);
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
 
@@ -35,39 +33,42 @@ const useGameLogic = () => {
     return emptyTiles[randomIndex];
   }, []);
 
-  const addNewTile = useCallback((currentTiles: Tile[]): { updatedTiles: Tile[], newTile?: Tile } => {
-    const emptyTile = getRandomEmptyTilePosition(currentTiles);
+  const addNewTile = useCallback((currentGrid: Tile[][]): { updatedTiles: Tile[][], newTile?: Tile } => {
+    const emptyTile = getRandomEmptyTilePosition(currentGrid.flat());
     if (emptyTile) {
       const newValue = Math.random() < 0.9 ? 2 : 4;
       const newTile = { ...emptyTile, value: newValue, isNew: true };
-      const updatedTiles = currentTiles.map(tile =>
+      const updatedGrid = currentGrid.map(row => row.map(tile =>
         tile.id === newTile.id ? newTile : { ...tile, isNew: false, isMerged: false }
-      );
-      return { updatedTiles, newTile };
+      ));
+      return { updatedTiles: updatedGrid, newTile };
     }
-    return { updatedTiles: currentTiles.map(tile => ({ ...tile, isNew: false, isMerged: false })) };
+    return { updatedTiles: currentGrid.map(row => row.map(tile => ({ ...tile, isNew: false, isMerged: false })) ) };
   }, [getRandomEmptyTilePosition]);
 
   const initializeGrid = useCallback(() => {
-    const initialTiles: Tile[] = [];
+    const initialGrid: Tile[][] = [];
     for (let y = 0; y < 4; y++) {
+      initialGrid.push([]);
       for (let x = 0; x < 4; x++) {
-        initialTiles.push(createTile(y * 4 + x, 0, x, y));
+        initialGrid[y].push(createTile(y * 4 + x, 0, x, y));
       }
     }
 
-    const addRandomTile = (gridArr: Tile[], value?: number) => {
-      const emptyTile = getRandomEmptyTilePosition(gridArr);
+    const addRandomTile = (gridArr: Tile[][], value?: number) => {
+      const flatGrid = gridArr.flat();
+      const emptyTile = getRandomEmptyTilePosition(flatGrid);
       if (emptyTile) {
         const newValue = value !== undefined ? value : (Math.random() < 0.9 ? 2 : 4);
-        return gridArr.map(tile =>
+        const newGrid = gridArr.map(row => row.map(tile =>
           tile.id === emptyTile.id ? { ...tile, value: newValue, isNew: true } : tile
-        );
+        ));
+        return newGrid;
       }
       return gridArr;
     };
 
-    let gridWithTwoTiles = addRandomTile(initialTiles);
+    let gridWithTwoTiles = addRandomTile(initialGrid);
     gridWithTwoTiles = addRandomTile(gridWithTwoTiles);
 
     setGrid(gridWithTwoTiles);
@@ -130,17 +131,14 @@ const useGameLogic = () => {
     return { newTilesInLine, changed: hasChanged, scoreIncrease: currentScore };
   }, []);
 
-  const checkGameOver = useCallback((currentGrid: Tile[]) => {
+  const checkGameOver = useCallback((currentGrid: Tile[][]) => {
     // If there's an empty tile, the game is not over
-    if (currentGrid.some(tile => tile.value === 0)) return false;
+    if (currentGrid.flat().some(tile => tile.value === 0)) return false;
 
     // Helper to simulate a move on a given grid without changing the actual game state
-    const simulateMoveOnGrid = (gridToSimulate: Tile[], direction: 'left' | 'right' | 'up' | 'down') => {
+    const simulateMoveOnGrid = (gridToSimulate: Tile[][], direction: 'left' | 'right' | 'up' | 'down') => {
       let changed = false;
-      const tempGrid: Tile[][] = Array(4).fill(null).map(() => Array(4).fill(null));
-      gridToSimulate.forEach(tile => {
-        tempGrid[tile.y][tile.x] = tile;
-      });
+      const tempGrid: Tile[][] = gridToSimulate.map(row => row.map(tile => ({ ...tile }))); // Deep copy
 
       if (direction === 'left' || direction === 'right') {
         for (let y = 0; y < 4; y++) {
@@ -169,61 +167,41 @@ const useGameLogic = () => {
     return true;
   }, [slide]);
 
-  const checkGameWon = useCallback((currentGrid: Tile[]) => {
-    return currentGrid.some(tile => tile.value === 2048);
+  const checkGameWon = useCallback((currentGrid: Tile[][]) => {
+    return currentGrid.flat().some(tile => tile.value === 2048);
   }, []);
 
-  const move = useCallback((currentGrid: Tile[], direction: 'left' | 'right' | 'up' | 'down') => {
+  const move = useCallback((currentGrid: Tile[][], direction: 'left' | 'right' | 'up' | 'down') => {
     let changed = false;
     let totalScoreIncrease = 0;
 
-    const tempGrid: Tile[][] = Array(4).fill(null).map(() => Array(4).fill(null));
-    currentGrid.forEach(tile => {
-      const tileCopy = { ...tile, prevX: tile.x, prevY: tile.y };
-      tempGrid[tile.y][tile.x] = tileCopy;
-    });
+    // Create a deep copy of the current grid to work on
+    let newGrid: Tile[][] = currentGrid.map(row => row.map(tile => ({ ...tile, isNew: false, isMerged: false })));
 
     if (direction === 'left' || direction === 'right') {
       for (let y = 0; y < 4; y++) {
-        const rowTiles: Tile[] = tempGrid[y];
+        const rowTiles = newGrid[y];
         const { newTilesInLine, changed: rowChanged, scoreIncrease } = slide(rowTiles, direction);
         if (rowChanged) changed = true;
         totalScoreIncrease += scoreIncrease;
 
         newTilesInLine.forEach((processedTile, index) => {
-          const originalTile = tempGrid[y][index]; // Get the tile from tempGrid
-          originalTile.value = processedTile.value;
-          originalTile.isMerged = processedTile.isMerged;
-          originalTile.isNew = processedTile.isNew;
-          originalTile.x = index;
-          originalTile.y = y;
+          newGrid[y][index] = { ...processedTile, x: index, y: y };
         });
       }
     } else { // Up or Down
       for (let x = 0; x < 4; x++) {
         const colTiles: Tile[] = [];
         for (let y = 0; y < 4; y++) {
-          colTiles.push(tempGrid[y][x]);
+          colTiles.push(newGrid[y][x]);
         }
         const { newTilesInLine, changed: colChanged, scoreIncrease } = slide(colTiles, direction);
         if (colChanged) changed = true;
         totalScoreIncrease += scoreIncrease;
 
         newTilesInLine.forEach((processedTile, index) => {
-          const originalTile = tempGrid[index][x]; // Get the tile from tempGrid
-          originalTile.value = processedTile.value;
-          originalTile.isMerged = processedTile.isMerged;
-          originalTile.isNew = processedTile.isNew;
-          originalTile.x = x;
-          originalTile.y = index;
+          newGrid[index][x] = { ...processedTile, x: x, y: index };
         });
-      }
-    }
-
-    let finalGrid: Tile[] = [];
-    for (let y = 0; y < 4; y++) {
-      for (let x = 0; x < 4; x++) {
-        finalGrid.push(tempGrid[y][x]);
       }
     }
 
@@ -232,13 +210,13 @@ const useGameLogic = () => {
     let isGameWon = false;
 
     if (changed) {
-      const { updatedTiles, newTile: addedTile } = addNewTile(finalGrid);
-      finalGrid = updatedTiles;
+      const { updatedTiles, newTile: addedTile } = addNewTile(newGrid);
+      newGrid = updatedTiles;
       newTile = addedTile;
 
-      isGameWon = checkGameWon(finalGrid);
+      isGameWon = checkGameWon(newGrid);
       if (!isGameWon) {
-        isGameOver = checkGameOver(finalGrid);
+        isGameOver = checkGameOver(newGrid);
       }
     }
 
@@ -251,7 +229,7 @@ const useGameLogic = () => {
       setGameState(GameState.Playing);
     }
 
-    return { finalGrid, changed, scoreIncrease: totalScoreIncrease, isGameOver, isGameWon, newTile };
+    return { finalGrid: newGrid, changed, scoreIncrease: totalScoreIncrease, isGameOver, isGameWon, newTile };
   }, [slide, addNewTile, checkGameWon, checkGameOver, setScore, setGameState]);
 
   return {
