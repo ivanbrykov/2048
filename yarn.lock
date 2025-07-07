@@ -16,10 +16,12 @@ __metadata:
     "@vitejs/plugin-react": "npm:^4.6.0"
     clsx: "npm:^2.1.1"
     es-toolkit: "npm:^1.39.6"
+    motion: "npm:^12.23.0"
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
     tailwindcss: "npm:^4.1.11"
     typescript: "npm:~5.8.3"
+    ulid: "npm:^3.0.1"
     vite: "npm:^7.0.2"
   languageName: unknown
   linkType: soft
@@ -1404,6 +1406,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"framer-motion@npm:^12.23.0":
+  version: 12.23.0
+  resolution: "framer-motion@npm:12.23.0"
+  dependencies:
+    motion-dom: "npm:^12.22.0"
+    motion-utils: "npm:^12.19.0"
+    tslib: "npm:^2.4.0"
+  peerDependencies:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/is-prop-valid":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10c0/9085c734767620442e03298f738be9c7fff60a8ca59dddf39cc037c45579d11d3ec3502a5c3eba32084c8c258f239048bbf68f5dac62e288d96b069ce54d12e1
+  languageName: node
+  linkType: hard
+
 "fs-minipass@npm:^3.0.0":
   version: 3.0.3
   resolution: "fs-minipass@npm:3.0.3"
@@ -1842,6 +1866,43 @@ __metadata:
   bin:
     mkdirp: dist/cjs/src/bin.js
   checksum: 10c0/9f2b975e9246351f5e3a40dcfac99fcd0baa31fbfab615fe059fb11e51f10e4803c63de1f384c54d656e4db31d000e4767e9ef076a22e12a641357602e31d57d
+  languageName: node
+  linkType: hard
+
+"motion-dom@npm:^12.22.0":
+  version: 12.22.0
+  resolution: "motion-dom@npm:12.22.0"
+  dependencies:
+    motion-utils: "npm:^12.19.0"
+  checksum: 10c0/f3ef3a2f9224e6aba81535833c8e396e632c80ca5c919890243113b91c1fd388073c04f3163be64bc72594cebb65a2161bca104c90846504ff771dee979ff9d7
+  languageName: node
+  linkType: hard
+
+"motion-utils@npm:^12.19.0":
+  version: 12.19.0
+  resolution: "motion-utils@npm:12.19.0"
+  checksum: 10c0/e9526e0135c5f596b2d9a242edbd5b5268922b6001d1b9fb63f2fb4b11f891ac63a186eef8dbd80a4011692d70897aa0c6d4d161fcaaaef3dd4ca7aea6263226
+  languageName: node
+  linkType: hard
+
+"motion@npm:^12.23.0":
+  version: 12.23.0
+  resolution: "motion@npm:12.23.0"
+  dependencies:
+    framer-motion: "npm:^12.23.0"
+    tslib: "npm:^2.4.0"
+  peerDependencies:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/is-prop-valid":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10c0/57f0c050d70c2a4aea6e800d05f6f03ca0106fb785807e073484a50e701cde34f17210643820fb6375f9be74939c62775009a795eb872ca105c0ba7ec915f8e0
   languageName: node
   linkType: hard
 
@@ -2294,6 +2355,15 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/39117e346ff8ebd87ae1510b3a77d5d92dae5a89bde588c747d25da5c146603a99c8ee588c7ef80faaf123d89ed46f6dbd918d534d641083177d5fac38b8a1cb
+  languageName: node
+  linkType: hard
+
+"ulid@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "ulid@npm:3.0.1"
+  bin:
+    ulid: dist/cli.js
+  checksum: 10c0/3b3eba4bea0d22fee7a7465d1d239f0bb20f604325a72fdb273085f18a2eeecf4391a967e8446f6d4eaa39f32fabe320a6d87846bd6313aacd2cd294d6d2b858
   languageName: node
   linkType: hard
 
