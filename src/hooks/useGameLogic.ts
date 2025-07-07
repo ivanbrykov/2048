@@ -1,16 +1,15 @@
-import { sample } from 'es-toolkit';
+import { isNull, sample } from 'es-toolkit';
 import { useCallback, useState } from 'react';
 import { ulid } from 'ulid';
 
 interface Tile {
   id: string;
   value: number;
-  isNew: boolean;
-  isMerged: boolean;
+  prevValue: number | null;
 }
 
 const createTile = (value: number): Tile => {
-  return { id: ulid(), value, isNew: true, isMerged: false };
+  return { id: ulid(), value, prevValue: null };
 };
 
 export const GameState = {
@@ -39,6 +38,27 @@ const addRandomTile = (grid: Tile[], value?: number) => {
   return grid;
 };
 
+const gridWalker = {
+  down: {
+    init: (i: number) => 11 - i,
+    next: (idx: number) => (idx > 11 ? null : idx + 4),
+  },
+  up: {
+    init: (i: number) => i + 4,
+    next: (idx: number) => (idx < 4 ? null : idx - 4),
+  },
+  left: {
+    init: (i: number) => ((i * 4) % 15) + 1,
+    next: (idx: number) => (idx % 4 === 0 ? null : idx - 1),
+  },
+  right: {
+    init: (i: number) => 14 - ((i * 4) % 15),
+    next: (idx: number) => ((idx + 1) % 4 === 0 ? null : idx + 1),
+  },
+};
+
+type DirectionEnum = keyof typeof gridWalker;
+
 const initializeGrid = (): Tile[] => {
   const initialGrid: Tile[] = Array(16)
     .fill(null)
@@ -53,42 +73,53 @@ const initializeGrid = (): Tile[] => {
 const slide = (tilesInLine: Tile[]) => {
   let currentScore = 0;
 
-  const line = tilesInLine.map((tile) => ({
-    ...tile,
-    isNew: false,
-    isMerged: false,
-  }));
+  const newTiles: Tile[] = [];
 
-  const activeTiles = line.filter((tile) => tile.value !== 0);
+  // Filter out empty tiles and create a working copy
+  const activeTiles = tilesInLine.filter((tile) => tile.value !== 0);
 
-  for (let i = 0; i < activeTiles.length - 1; i++) {
-    if (activeTiles[i].value === activeTiles[i + 1].value) {
-      activeTiles[i].value *= 2;
-      currentScore += activeTiles[i].value;
-      activeTiles[i].isMerged = true;
-      activeTiles.splice(i + 1, 1);
+  for (let i = 0; i < activeTiles.length; i++) {
+    const currentTile = activeTiles[i];
+    if (
+      i + 1 < activeTiles.length &&
+      currentTile.value === activeTiles[i + 1].value
+    ) {
+      // Merge
+      const mergedValue = currentTile.value * 2;
+      // Create a new tile object for the merged result, preserving the ID of the first tile
+      newTiles.push({
+        id: currentTile.id,
+        value: mergedValue,
+        prevValue: null,
+      });
+      currentScore += mergedValue;
+      i++; // Skip the next tile as it's merged
+    } else {
+      // No merge, just move the tile
+      newTiles.push({ ...currentTile }); // Keep the original tile object (and its ID)
     }
   }
 
-  while (activeTiles.length < 4) {
-    activeTiles.push(createTile(0));
+  // Fill the rest with empty tiles
+  while (newTiles.length < 4) {
+    newTiles.push(createTile(0)); // createTile(0) will generate a new ID for empty spots
   }
 
+  // Determine if the grid has changed based on value or ID changes
   const hasChanged = tilesInLine.some(
-    (originalTile, index) => originalTile.value !== activeTiles[index].value,
+    (originalTile, index) =>
+      originalTile.value !== newTiles[index].value ||
+      originalTile.id !== newTiles[index].id,
   );
 
   return {
-    newTilesInLine: activeTiles,
+    newTilesInLine: newTiles,
     changed: hasChanged,
     scoreIncrease: currentScore,
   };
 };
 
-const simulateMove = (
-  gridToSimulate: Tile[],
-  direction: 'left' | 'right' | 'up' | 'down',
-) => {
+const simulateMove = (gridToSimulate: Tile[], direction: DirectionEnum) => {
   let changed = false;
   if (direction === 'left' || direction === 'right') {
     for (let y = 0; y < 4; y++) {
@@ -137,119 +168,107 @@ const useGameLogic = () => {
   const [score, setScore] = useState(0);
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
 
-  const addNewTile = useCallback(
-    (currentGrid: Tile[]): { updatedTiles: Tile[]; newTileIndex?: number } => {
-      const emptyTileIndex = getRandomEmptyTileIndex(currentGrid);
-      if (emptyTileIndex !== undefined) {
-        const newValue = Math.random() < 0.9 ? 2 : 4;
-        const newTile = createTile(newValue);
-        const updatedGrid = currentGrid.map((tile) => ({
-          ...tile,
-          isNew: false,
-          isMerged: false,
-        }));
-        updatedGrid[emptyTileIndex] = newTile;
-        return { updatedTiles: updatedGrid, newTileIndex: emptyTileIndex };
-      }
-      const updatedGrid = currentGrid.map((tile) => ({
-        ...tile,
-        isNew: false,
-        isMerged: false,
-      }));
-      return { updatedTiles: updatedGrid };
-    },
-    [],
-  );
+  // const addNewTile = useCallback(
+  //   (currentGrid: Tile[]): { updatedTiles: Tile[]; newTileIndex?: number } => {
+  //     const emptyTileIndex = getRandomEmptyTileIndex(currentGrid);
+  //     if (emptyTileIndex !== undefined) {
+  //       const newValue = Math.random() < 0.9 ? 2 : 4;
+  //       const newTile = createTile(newValue);
+  //       const updatedGrid = [...currentGrid]; // Shallow copy
+  //       updatedGrid[emptyTileIndex] = newTile;
+  //       return { updatedTiles: updatedGrid, newTileIndex: emptyTileIndex };
+  //     }
+  //     return { updatedTiles: [...currentGrid] }; // Return a shallow copy even if no new tile
+  //   },
+  //   [],
+  // );
 
   const checkGameWon = useCallback((currentGrid: Tile[]) => {
     return currentGrid.some((tile) => tile.value === 2048);
   }, []);
 
   const move = useCallback(
-    (direction: 'left' | 'right' | 'up' | 'down') => {
+    (direction: DirectionEnum) => {
       let changed = false;
       let totalScoreIncrease = 0;
-      let newGrid = [...grid];
+      let newGrid = grid.map((tile) => {
+        tile.prevValue = null;
+        return tile;
+      });
 
-      if (direction === 'left' || direction === 'right') {
-        for (let y = 0; y < 4; y++) {
-          const row = newGrid.slice(y * 4, y * 4 + 4);
-          const {
-            newTilesInLine,
-            changed: rowChanged,
-            scoreIncrease,
-          } = slide(direction === 'left' ? row : [...row].reverse());
-          if (rowChanged) {
-            changed = true;
-            totalScoreIncrease += scoreIncrease;
-            const resultRow =
-              direction === 'left' ? newTilesInLine : newTilesInLine.reverse();
-            for (let x = 0; x < 4; x++) {
-              newGrid[y * 4 + x] = resultRow[x];
-            }
-          }
+      for (let walker = 0; walker <= 11; walker++) {
+        const fromTileIdx = gridWalker[direction].init(walker);
+        if (newGrid[fromTileIdx].value === 0) {
+          continue;
         }
-      } else {
-        // up or down
-        for (let x = 0; x < 4; x++) {
-          const col = [
-            newGrid[x],
-            newGrid[x + 4],
-            newGrid[x + 8],
-            newGrid[x + 12],
-          ];
-          const {
-            newTilesInLine,
-            changed: colChanged,
-            scoreIncrease,
-          } = slide(direction === 'up' ? col : [...col].reverse());
-          if (colChanged) {
-            changed = true;
-            totalScoreIncrease += scoreIncrease;
-            const resultCol =
-              direction === 'up' ? newTilesInLine : newTilesInLine.reverse();
-            for (let y = 0; y < 4; y++) {
-              newGrid[y * 4 + x] = resultCol[y];
-            }
+        let toTileIdx = null;
+        let fuse = 0;
+        while (true) {
+          if (fuse++ > 100) {
+            break;
           }
+          console.log('WHILE!', direction, fuse);
+          const possibleNewTileIdx: number | null = gridWalker[direction].next(
+            isNull(toTileIdx) ? fromTileIdx : toTileIdx,
+          );
+          console.log('🚀 ~ useGameLogic ~ possibleNewTileIdx:', {
+            toTileIdx,
+            fromTileIdx,
+            possibleNewTileIdx,
+          });
+
+          if (isNull(possibleNewTileIdx)) {
+            break;
+          }
+          if (newGrid[possibleNewTileIdx].value === 0) {
+            toTileIdx = possibleNewTileIdx;
+            continue;
+          }
+          if (
+            isNull(newGrid[possibleNewTileIdx].prevValue) &&
+            newGrid[possibleNewTileIdx].value === newGrid[fromTileIdx].value
+          ) {
+            toTileIdx = possibleNewTileIdx;
+          }
+          break;
+        }
+        if (!isNull(toTileIdx)) {
+          changed = true;
+          const tile = newGrid[fromTileIdx];
+          if (newGrid[toTileIdx].value > 0) {
+            tile.prevValue = tile.value;
+            tile.value += newGrid[toTileIdx].value;
+            totalScoreIncrease += tile.value;
+          }
+          newGrid[toTileIdx] = tile;
+          newGrid[fromTileIdx] = createTile(0);
         }
       }
-
-      let newTileIndex: number | undefined;
-      let isGameOver = false;
-      let isGameWon = false;
 
       if (changed) {
-        const { updatedTiles, newTileIndex: addedTileIndex } =
-          addNewTile(newGrid);
-        newGrid = updatedTiles;
-        newTileIndex = addedTileIndex;
+        newGrid = addRandomTile(newGrid);
 
-        isGameWon = checkGameWon(newGrid);
-        if (!isGameWon) {
-          isGameOver = checkGameOver(newGrid);
+        if (checkGameWon(newGrid)) {
+          setGameState(GameState.GameWon);
+        } else if (checkGameOver(newGrid)) {
+          setGameState(GameState.GameOver);
         }
-      }
 
-      setScore((prevScore) => prevScore + totalScoreIncrease);
-      if (isGameWon) {
-        setGameState(GameState.GameWon);
-      } else if (isGameOver) {
-        setGameState(GameState.GameOver);
-      } else {
-        setGameState(GameState.Playing);
+        setScore((prevScore) => prevScore + totalScoreIncrease);
+
+        setGrid(newGrid);
       }
 
       return {
         finalGrid: newGrid,
         changed,
         scoreIncrease: totalScoreIncrease,
-        isGameOver,
-        isGameWon,
-        newTile: newTileIndex,
+        // isGameOver,
+        // isGameWon,
+        // newTile: newTileIndex,
       };
     },
-    [grid, addNewTile, checkGameWon],
+    [grid, checkGameWon],
   );
 
   return {

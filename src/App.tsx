@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 import useGameLogic, { GameState } from './hooks/useGameLogic';
 
@@ -11,10 +11,8 @@ function App() {
 
   const handleMove = useCallback(
     (direction: 'left' | 'right' | 'up' | 'down') => {
-      if (gameState !== GameState.Playing) return; // Prevent moves if game is over or won
-
-      const { finalGrid, changed } = move(direction); // Pass current grid to move
-
+      if (gameState !== GameState.Playing) return;
+      const { finalGrid, changed } = move(direction);
       if (changed) {
         setGrid(finalGrid);
       }
@@ -103,17 +101,17 @@ function App() {
             return (
               <motion.div
                 key={tile.id}
-                initial={false}
-                animate={{
-                  opacity: 1,
-                  left: `calc(4cqw + 24cqw * ${x})`,
-                  top: `calc(4cqw + 24cqw * ${y})`,
-                }}
+                layout
                 transition={{ duration: 0.2 }}
                 className={clsx(
                   'absolute w-[20cqw] h-[20cqw] rounded-lg flex items-center justify-center text-2xl font-bold',
+                  {'z-10': tile.value !== 0},
                   getTileClass(tile.value),
                 )}
+                style={{
+                  left: `calc(4cqw + 24cqw * ${x})`,
+                  top: `calc(4cqw + 24cqw * ${y})`,
+                }}
               >
                 {tile.value !== 0 ? tile.value : ''}
               </motion.div>
