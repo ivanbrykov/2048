@@ -67,6 +67,18 @@ const initializeGrid = (): Tile[] => {
   let gridWithTwoTiles = addRandomTile(initialGrid);
   gridWithTwoTiles = addRandomTile(gridWithTwoTiles);
 
+  // let gridWithTwoTiles = addRandomTile(initialGrid, 2);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 4);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 8);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 16);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 32);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 64);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 128);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 256);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 512);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 1024);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 2048);
+
   return gridWithTwoTiles;
 };
 

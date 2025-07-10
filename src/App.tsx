@@ -16,10 +16,10 @@ function App() {
       if (changed) {
         setGrid(finalGrid);
       }
-      for(let i=0;i<4;i++){
-        console.log(`🚀 ~ App ~ finalGrid row ${i}:`, finalGrid.slice(i*4,i*4+4).map((tile) => `${tile.id}:${tile.value}`).join(' '));
-      }
-      console.log('--------------------------------------------------------------------');
+      // for(let i=0;i<4;i++){
+      //   console.log(`🚀 ~ App ~ finalGrid row ${i}:`, finalGrid.slice(i*4,i*4+4).map((tile) => `${tile.id}:${tile.value}`).join(' '));
+      // }
+      // console.log('--------------------------------------------------------------------');
     },
     [gameState, move, setGrid],
   );
@@ -87,7 +87,7 @@ function App() {
 
   return (
     <div
-      className="bg-gray-800 text-white min-h-screen flex flex-col items-center justify-center p-4"
+      className="bg-gray-800 text-white absolute inset-0 flex flex-col items-center justify-center p-4"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -104,7 +104,7 @@ function App() {
                 layout
                 transition={{ duration: 0.2 }}
                 className={clsx(
-                  'absolute w-[20cqw] h-[20cqw] rounded-lg flex items-center justify-center text-2xl font-bold',
+                  'absolute w-[20cqw] h-[20cqw] rounded-lg flex items-center justify-center text-[6.5cqw] font-bold',
                   {'z-10': tile.value !== 0},
                   getTileClass(tile.value),
                 )}
@@ -140,27 +140,27 @@ export default App;
 const getTileClass = (value: number) => {
   switch (value) {
     case 2:
-      return 'bg-yellow-200';
+      return 'bg-amber-100 text-gray-800';
     case 4:
-      return 'bg-yellow-300';
+      return 'bg-amber-200 text-gray-800';
     case 8:
-      return 'bg-yellow-400';
+      return 'bg-amber-400 text-gray-800';
     case 16:
-      return 'bg-yellow-500';
+      return 'bg-orange-400 text-white';
     case 32:
-      return 'bg-yellow-600';
+      return 'bg-orange-500 text-white';
     case 64:
-      return 'bg-yellow-700';
+      return 'bg-rose-500 text-white';
     case 128:
-      return 'bg-yellow-800';
+      return 'bg-rose-600 text-gray-100';
     case 256:
-      return 'bg-yellow-900';
+      return 'bg-red-600 text-gray-100';
     case 512:
-      return 'bg-red-500';
+      return 'bg-red-700 text-gray-100';
     case 1024:
-      return 'bg-red-600';
+      return 'bg-red-700 text-gray-100';
     case 2048:
-      return 'bg-red-700';
+      return 'bg-red-700 text-gray-100';
     default:
       return 'bg-gray-600';
   }
