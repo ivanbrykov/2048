@@ -178,7 +178,7 @@ const checkGameOver = (currentGrid: Tile[]) => {
 const useGameLogic = () => {
   const [grid, setGrid] = useState<Tile[]>(initializeGrid());
   const [score, setScore] = useState(0);
-  const [gameState, setGameState] = useState<GameState>(GameState.GameWon);
+  const [gameState, setGameState] = useState<GameState>(GameState.Playing);
 
   const restartGame = useCallback(() => {
     setScore(0);
