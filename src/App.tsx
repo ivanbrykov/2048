@@ -38,6 +38,7 @@ function App() {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (showHelp) return;
       switch (e.key) {
         case 'ArrowLeft':
           handleMove('left');
@@ -55,16 +56,18 @@ function App() {
           break;
       }
     },
-    [handleMove],
+    [handleMove, showHelp],
   );
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (showHelp) return;
     setTouchStartX(e.touches[0].clientX);
     setTouchStartY(e.touches[0].clientY);
-  }, []);
+  }, [showHelp]);
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
+      if (showHelp) return;
       const touchEndX = e.changedTouches[0].clientX;
       const touchEndY = e.changedTouches[0].clientY;
 
@@ -87,7 +90,7 @@ function App() {
         }
       }
     },
-    [handleMove, touchStartX, touchStartY],
+    [handleMove, touchStartX, touchStartY, showHelp],
   );
 
   useEffect(() => {
@@ -201,7 +204,7 @@ function App() {
             <button
               type="button"
               onClick={() => setShowHelp(false)}
-              className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-500 transition-colors text-white"
+              className="absolute top-2 right-2 p-3 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors text-white"
             >
               <X />
             </button>
