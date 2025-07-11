@@ -178,7 +178,17 @@ const checkGameOver = (currentGrid: Tile[]) => {
 const useGameLogic = () => {
   const [grid, setGrid] = useState<Tile[]>(initializeGrid());
   const [score, setScore] = useState(0);
-  const [gameState, setGameState] = useState<GameState>(GameState.Playing);
+  const [gameState, setGameState] = useState<GameState>(GameState.GameWon);
+
+  const restartGame = useCallback(() => {
+    setScore(0);
+    setGameState(GameState.Playing);
+    setGrid(initializeGrid());
+  }, []);
+
+  const continueGame = useCallback(() => {
+    setGameState(GameState.Playing);
+  }, []);
 
   // const addNewTile = useCallback(
   //   (currentGrid: Tile[]): { updatedTiles: Tile[]; newTileIndex?: number } => {
@@ -201,6 +211,9 @@ const useGameLogic = () => {
 
   const move = useCallback(
     (direction: DirectionEnum) => {
+      if (gameState !== GameState.Playing) {
+        return { finalGrid: grid, changed: false, scoreIncrease: 0 };
+      }
       let changed = false;
       let totalScoreIncrease = 0;
       let newGrid = grid.map((tile) => {
@@ -280,7 +293,7 @@ const useGameLogic = () => {
         // newTile: newTileIndex,
       };
     },
-    [grid, checkGameWon],
+    [grid, checkGameWon, gameState],
   );
 
   return {
@@ -290,6 +303,8 @@ const useGameLogic = () => {
     initializeGrid,
     move,
     setGrid,
+    restartGame,
+    continueGame,
   };
 };
 

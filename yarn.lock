@@ -16,6 +16,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^4.6.0"
     clsx: "npm:^2.1.1"
     es-toolkit: "npm:^1.39.7"
+    lucide-react: "npm:^0.525.0"
     motion: "npm:^12.23.1"
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
@@ -3927,6 +3928,15 @@ __metadata:
   dependencies:
     yallist: "npm:^3.0.2"
   checksum: 10c0/89b2ef2ef45f543011e38737b8a8622a2f8998cddf0e5437174ef8f1f70a8b9d14a918ab3e232cb3ba343b7abddffa667f0b59075b2b80e6b4d63c3de6127482
+  languageName: node
+  linkType: hard
+
+"lucide-react@npm:^0.525.0":
+  version: 0.525.0
+  resolution: "lucide-react@npm:0.525.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/81c4438e2cf1c86ea2ebe0a97b378201512450894283cccce766a89bc6a4e47c8df1d9115d845d98f582bb0a10be31c454aa232520fea35018dac1cd8466ea9b
   languageName: node
   linkType: hard
 
