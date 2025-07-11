@@ -1,5 +1,5 @@
 import { isNull, sample } from 'es-toolkit';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ulid } from 'ulid';
 
 interface Tile {
@@ -16,6 +16,7 @@ export const GameState = {
   Playing: 'Playing',
   GameOver: 'GameOver',
   GameWon: 'GameWon',
+  Endless: 'Endless',
 } as const;
 
 type GameState = (typeof GameState)[keyof typeof GameState];
@@ -78,6 +79,7 @@ const initializeGrid = (): Tile[] => {
   // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 512);
   // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 1024);
   // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 2048);
+  // gridWithTwoTiles = addRandomTile(gridWithTwoTiles, 4096);
 
   return gridWithTwoTiles;
 };
@@ -178,7 +180,15 @@ const checkGameOver = (currentGrid: Tile[]) => {
 const useGameLogic = () => {
   const [grid, setGrid] = useState<Tile[]>(initializeGrid());
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
+
+  useEffect(() => {
+    const storedHighScore = localStorage.getItem('2048-high-score');
+    if (storedHighScore) {
+      setHighScore(Number(storedHighScore));
+    }
+  }, []);
 
   const restartGame = useCallback(() => {
     setScore(0);
@@ -187,7 +197,7 @@ const useGameLogic = () => {
   }, []);
 
   const continueGame = useCallback(() => {
-    setGameState(GameState.Playing);
+    setGameState(GameState.Endless);
   }, []);
 
   // const addNewTile = useCallback(
@@ -211,7 +221,7 @@ const useGameLogic = () => {
 
   const move = useCallback(
     (direction: DirectionEnum) => {
-      if (gameState !== GameState.Playing) {
+      if (gameState !== GameState.Playing && gameState !== GameState.Endless) {
         return { finalGrid: grid, changed: false, scoreIncrease: 0 };
       }
       let changed = false;
@@ -273,13 +283,20 @@ const useGameLogic = () => {
       if (changed) {
         newGrid = addRandomTile(newGrid);
 
-        if (checkGameWon(newGrid)) {
+        if (gameState !== GameState.Endless && checkGameWon(newGrid)) {
           setGameState(GameState.GameWon);
         } else if (checkGameOver(newGrid)) {
           setGameState(GameState.GameOver);
         }
 
-        setScore((prevScore) => prevScore + totalScoreIncrease);
+        setScore((prevScore) => {
+          const newScore = prevScore + totalScoreIncrease;
+          if (newScore > highScore) {
+            setHighScore(newScore);
+            localStorage.setItem('2048-high-score', String(newScore));
+          }
+          return newScore;
+        });
 
         setGrid(newGrid);
       }
@@ -293,12 +310,13 @@ const useGameLogic = () => {
         // newTile: newTileIndex,
       };
     },
-    [grid, checkGameWon, gameState],
+    [grid, checkGameWon, gameState, highScore],
   );
 
   return {
     grid,
     score,
+    highScore,
     gameState,
     initializeGrid,
     move,
