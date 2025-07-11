@@ -1,10 +1,12 @@
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
+import { CirclePlay, RotateCcw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import useGameLogic, { GameState } from './hooks/useGameLogic';
 
 function App() {
-  const { grid, score, gameState, move, setGrid } = useGameLogic();
+  const { grid, score, gameState, move, setGrid, restartGame, continueGame } =
+    useGameLogic();
 
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
@@ -91,7 +93,7 @@ function App() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="mb-4 text-2xl font-bold">Score: {score}</div>
+      <div className="merriweather mb-4 text-2xl font-bold">Score: {score}</div>
       <div className="w-[90vw] h-[90vw] md:w-[600px] md:h-[600px] @container/main relative flex flex-col">
         <div className="relative gap-[3cqw] bg-gray-700 p-[3cqw] rounded-lg grow">
           {grid.map((tile, index) => {
@@ -103,8 +105,8 @@ function App() {
                 key={tile.id}
                 layout
                 {...(tile.value !== 0 && {
-                initial: { scale: 0, opacity: 0 },
-                animate: { scale: 1, opacity: 1 }
+                  initial: { scale: 0, opacity: 0 },
+                  animate: { scale: 1, opacity: 1 },
                 })}
                 transition={{ duration: 0.2 }}
                 className={clsx(
@@ -125,14 +127,37 @@ function App() {
       </div>
 
       {gameState === GameState.GameOver && (
-        <div className="absolute inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+        <div className="merriweather absolute inset-0 bg-gray-800/90 backdrop-blur-xs flex flex-col items-center justify-center z-20">
           <p className="text-4xl font-bold">Game Over!</p>
+          <button
+            type="button"
+            onClick={restartGame}
+            className="mt-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+          >
+            <RotateCcw className="w-8 h-8" />
+          </button>
         </div>
       )}
 
       {gameState === GameState.GameWon && (
-        <div className="absolute inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+        <div className="merriweather absolute inset-0 bg-gray-800/90 backdrop-blur-xs flex flex-col items-center justify-center z-20">
           <p className="text-4xl font-bold">You Win!</p>
+          <div className="flex mt-4 space-x-4">
+            <button
+              type="button"
+              onClick={continueGame}
+              className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+            >
+              <CirclePlay className="w-8 h-8" />
+            </button>
+            <button
+              type="button"
+              onClick={restartGame}
+              className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+            >
+              <RotateCcw className="w-8 h-8" />
+            </button>
+          </div>
         </div>
       )}
     </div>
