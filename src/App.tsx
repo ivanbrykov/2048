@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import useGameLogic, { GameState } from './hooks/useGameLogic';
 
 function App() {
-  const { grid, score, gameState, move, setGrid, restartGame, continueGame } =
+  const { grid, score, highScore, gameState, move, setGrid, restartGame, continueGame } =
     useGameLogic();
 
   const [touchStartX, setTouchStartX] = useState(0);
@@ -13,7 +13,7 @@ function App() {
 
   const handleMove = useCallback(
     (direction: 'left' | 'right' | 'up' | 'down') => {
-      if (gameState !== GameState.Playing) return;
+      if (gameState === GameState.GameOver || gameState === GameState.GameWon) return;
       const { finalGrid, changed } = move(direction);
       if (changed) {
         setGrid(finalGrid);
@@ -93,7 +93,8 @@ function App() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="merriweather mb-4 text-2xl font-bold">Score: {score}</div>
+      <div className="mb-4 text-2xl font-bold">Score: {score}</div>
+      <div className="mb-4 text-xl font-bold">High Score: {highScore}</div>
       <div className="w-[90vw] h-[90vw] md:w-[600px] md:h-[600px] @container/main relative flex flex-col">
         <div className="relative gap-[3cqw] bg-gray-700 p-[3cqw] rounded-lg grow">
           {grid.map((tile, index) => {
@@ -129,6 +130,8 @@ function App() {
       {gameState === GameState.GameOver && (
         <div className="merriweather absolute inset-0 bg-gray-800/90 backdrop-blur-xs flex flex-col items-center justify-center z-20">
           <p className="text-4xl font-bold">Game Over!</p>
+          <p className="text-2xl font-bold">Score: {score}</p>
+          <p className="text-2xl font-bold">High Score: {highScore}</p>
           <button
             type="button"
             onClick={restartGame}
@@ -168,6 +171,8 @@ export default App;
 
 const getTileClass = (value: number) => {
   switch (value) {
+    case 0:
+      return 'bg-gray-600';
     case 2:
       return 'bg-amber-100 text-gray-800';
     case 4:
@@ -191,6 +196,6 @@ const getTileClass = (value: number) => {
     case 2048:
       return 'bg-red-700 text-gray-100';
     default:
-      return 'bg-gray-600';
+      return 'bg-gray-900 text-gray-100';
   }
 };
