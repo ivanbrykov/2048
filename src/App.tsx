@@ -102,10 +102,14 @@ function App() {
               <motion.div
                 key={tile.id}
                 layout
+                {...(tile.value !== 0 && {
+                initial: { scale: 0, opacity: 0 },
+                animate: { scale: 1, opacity: 1 }
+                })}
                 transition={{ duration: 0.2 }}
                 className={clsx(
-                  'absolute w-[20cqw] h-[20cqw] rounded-lg flex items-center justify-center text-[6.5cqw] font-bold',
-                  {'z-10': tile.value !== 0},
+                  'merriweather absolute w-[20cqw] h-[20cqw] rounded-lg flex items-center justify-center text-[6.5cqw] font-bold',
+                  { 'z-10': tile.value !== 0 },
                   getTileClass(tile.value),
                 )}
                 style={{
