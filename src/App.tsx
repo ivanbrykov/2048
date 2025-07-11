@@ -1,19 +1,29 @@
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
-import { CirclePlay, RotateCcw } from 'lucide-react';
+import { HelpCircle, Play, RotateCcw, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import useGameLogic, { GameState } from './hooks/useGameLogic';
 
 function App() {
-  const { grid, score, highScore, gameState, move, setGrid, restartGame, continueGame } =
-    useGameLogic();
+  const {
+    grid,
+    score,
+    highScore,
+    gameState,
+    move,
+    setGrid,
+    restartGame,
+    continueGame,
+  } = useGameLogic();
 
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleMove = useCallback(
     (direction: 'left' | 'right' | 'up' | 'down') => {
-      if (gameState === GameState.GameOver || gameState === GameState.GameWon) return;
+      if (gameState === GameState.GameOver || gameState === GameState.GameWon)
+        return;
       const { finalGrid, changed } = move(direction);
       if (changed) {
         setGrid(finalGrid);
@@ -87,6 +97,20 @@ function App() {
     };
   }, [handleKeyDown]);
 
+  useEffect(() => {
+    if (showHelp) {
+      const helpContent = document.getElementById('help-content');
+      if (helpContent) {
+        helpContent.style.display = 'block';
+      }
+    } else {
+      const helpContent = document.getElementById('help-content');
+      if (helpContent) {
+        helpContent.style.display = 'none';
+      }
+    }
+  }, [showHelp]);
+
   return (
     <div
       className="bg-gray-800 text-white absolute inset-0 flex flex-col items-center justify-center p-4"
@@ -95,6 +119,13 @@ function App() {
     >
       <div className="mb-4 text-2xl font-bold">Score: {score}</div>
       <div className="mb-4 text-xl font-bold">High Score: {highScore}</div>
+      <button
+        type="button"
+        onClick={() => setShowHelp(true)}
+        className="absolute top-4 right-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+      >
+        <HelpCircle className="w-8 h-8" />
+      </button>
       <div className="w-[90vw] h-[90vw] md:w-[600px] md:h-[600px] @container/main relative flex flex-col">
         <div className="relative gap-[3cqw] bg-gray-700 p-[3cqw] rounded-lg grow">
           {grid.map((tile, index) => {
@@ -143,7 +174,7 @@ function App() {
       )}
 
       {gameState === GameState.GameWon && (
-        <div className="merriweather absolute inset-0 bg-gray-800/90 backdrop-blur-xs flex flex-col items-center justify-center z-20">
+        <div className="absolute inset-0 bg-gray-800 bg-opacity-75 flex flex-col items-center justify-center">
           <p className="text-4xl font-bold">You Win!</p>
           <div className="flex mt-4 space-x-4">
             <button
@@ -151,7 +182,7 @@ function App() {
               onClick={continueGame}
               className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
             >
-              <CirclePlay className="w-8 h-8" />
+              <Play className="w-8 h-8" />
             </button>
             <button
               type="button"
@@ -163,9 +194,32 @@ function App() {
           </div>
         </div>
       )}
+
+      {showHelp && (
+        <div className="absolute inset-0 bg-gray-800/90 backdrop-blur-xs flex flex-col items-center justify-center z-30 p-4">
+          <div className="bg-gray-700 p-6 rounded-lg max-w-lg w-full relative">
+            <button
+              type="button"
+              onClick={() => setShowHelp(false)}
+              className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-500 transition-colors text-white"
+            >
+              <X />
+            </button>
+            <div
+              id="help-content-modal"
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: it's ok
+              dangerouslySetInnerHTML={{
+                __html:
+                  document.getElementById('help-content')?.innerHTML || '',
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 export default App;
 

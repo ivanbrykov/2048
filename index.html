@@ -1,15 +1,38 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/2048.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>2048</title>
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#ffffff" />
-  </head>
-  <body class="overflow-hidden overscroll-none">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/2048.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2048</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#ffffff" />
+</head>
+
+<body class="overflow-hidden overscroll-none">
+  <div id="root"></div>
+  <div id="help-content" class="hidden">
+    <div class="[&_p,&_h2]:my-2 [&_a]:underline">
+      <h1 class="merriweather text-center mb-1 text-2xl">2048 Game</h1>
+      <p>This is a classic 2048 game that is free and with no ads.</p>
+      <h2 class="font-bold">How to Play:</h2>
+      <ul class="list-disc ml-4">
+        <li>Use your arrow keys (or swipe on mobile) to move the tiles.</li>
+        <li>When two tiles with the same number touch, they merge into one!</li>
+        <li>The goal is to reach the 2048 tile.</li>
+        <li>Keep merging tiles to get higher numbers like 4, 8, 16, 32, 64, 128, 256, 512, 1024, and finally 2048.
+        </li>
+        <li>The game ends when the board is full and there are no more possible moves.</li>
+      </ul>
+      <p>Good luck and have fun!</p>
+      <p>
+        This game is almost entirely vibe-coded in <a href="https://codeassist.google/" target="_blank">Gemini Code</a>.
+        If you find any issues, feel free to <a href="https://github.com/ivanbrykov/2048/issues" target="_blank">report them</a>.
+      </p>
+    </div>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
