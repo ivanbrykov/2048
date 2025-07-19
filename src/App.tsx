@@ -77,6 +77,12 @@ function App() {
       const dx = touchEndX - touchStartX;
       const dy = touchEndY - touchStartY;
 
+      const minSwipeDistance = 5; // pixels
+
+      if (Math.abs(dx) < minSwipeDistance && Math.abs(dy) < minSwipeDistance) {
+        return; // It's a tap, not a swipe
+      }
+
       if (Math.abs(dx) > Math.abs(dy)) {
         // Horizontal swipe
         if (dx > 0) {
