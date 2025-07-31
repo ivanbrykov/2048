@@ -188,7 +188,7 @@ function App() {
         )}
 
         {gameState === GameState.GameWon && (
-          <div className="absolute inset-0 bg-gray-800 bg-opacity-75 flex flex-col items-center justify-center">
+          <div className="merriweather absolute inset-0 bg-gray-800/90 bg-opacity-75 flex flex-col items-center justify-center z-20">
             <p className="text-4xl font-bold">You Win!</p>
             <div className="flex mt-4 space-x-4">
               <button
