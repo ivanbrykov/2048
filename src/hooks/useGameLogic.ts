@@ -178,10 +178,23 @@ const checkGameOver = (currentGrid: Tile[]) => {
 };
 
 const useGameLogic = () => {
-  const [grid, setGrid] = useState<Tile[]>(initializeGrid());
-  const [score, setScore] = useState(0);
+  // Load game state from localStorage if available
+  const [grid, setGrid] = useState<Tile[]>(() => {
+    const savedState = localStorage.getItem('2048-game-state');
+    return savedState ? JSON.parse(savedState).grid : initializeGrid();
+  });
+
+  const [score, setScore] = useState(() => {
+    const savedState = localStorage.getItem('2048-game-state');
+    return savedState ? JSON.parse(savedState).score : 0;
+  });
+
   const [highScore, setHighScore] = useState(0);
-  const [gameState, setGameState] = useState<GameState>(GameState.Playing);
+
+  const [gameState, setGameState] = useState<GameState>(() => {
+    const savedState = localStorage.getItem('2048-game-state');
+    return savedState ? JSON.parse(savedState).gameState : GameState.Playing;
+  });
 
   useEffect(() => {
     const storedHighScore = localStorage.getItem('2048-high-score');
@@ -194,6 +207,7 @@ const useGameLogic = () => {
     setScore(0);
     setGameState(GameState.Playing);
     setGrid(initializeGrid());
+    localStorage.removeItem('2048-game-state');
   }, []);
 
   const continueGame = useCallback(() => {
@@ -289,7 +303,7 @@ const useGameLogic = () => {
           setGameState(GameState.GameOver);
         }
 
-        setScore((prevScore) => {
+        setScore((prevScore: number) => {
           const newScore = prevScore + totalScoreIncrease;
           if (newScore > highScore) {
             setHighScore(newScore);
@@ -312,6 +326,12 @@ const useGameLogic = () => {
     },
     [grid, checkGameWon, gameState, highScore],
   );
+
+  // Save game state to localStorage whenever it changes
+  useEffect(() => {
+    const gameStateToSave = { grid, score, gameState };
+    localStorage.setItem('2048-game-state', JSON.stringify(gameStateToSave));
+  }, [grid, score, gameState]);
 
   return {
     grid,
