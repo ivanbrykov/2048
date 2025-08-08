@@ -10,7 +10,8 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      // Include actual public assets so they are precached by the service worker
+      includeAssets: ['2048.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: '2048',
         short_name: '2048',
