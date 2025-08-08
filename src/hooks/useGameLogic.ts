@@ -1,25 +1,26 @@
+/* eslint-disable id-length */
 import { isNull, sample } from 'es-toolkit';
 import { useCallback, useEffect, useState } from 'react';
 import { ulid } from 'ulid';
 
-interface Tile {
+type Tile = {
   id: string;
+  prevValue: null | number;
   value: number;
-  prevValue: number | null;
-}
+};
 
 const createTile = (value: number): Tile => {
-  return { id: ulid(), value, prevValue: null };
+  return { id: ulid(), prevValue: null, value };
 };
 
 export const GameState = {
-  Playing: 'Playing',
+  Endless: 'Endless',
   GameOver: 'GameOver',
   GameWon: 'GameWon',
-  Endless: 'Endless',
+  Playing: 'Playing',
 } as const;
 
-type GameState = (typeof GameState)[keyof typeof GameState];
+export type GameStateEnum = (typeof GameState)[keyof typeof GameState];
 
 const getRandomEmptyTileIndex = (currentGrid: Tile[]): number | undefined => {
   const emptyTileIndices = currentGrid
@@ -31,11 +32,13 @@ const getRandomEmptyTileIndex = (currentGrid: Tile[]): number | undefined => {
 const addRandomTile = (grid: Tile[], value?: number) => {
   const emptyTileIndex = getRandomEmptyTileIndex(grid);
   if (emptyTileIndex !== undefined) {
-    const newValue = value !== undefined ? value : Math.random() < 0.9 ? 2 : 4;
+    const newValue =
+      value === undefined ? (Math.random() < 0.9 ? 2 : 4) : value;
     const newGrid = [...grid];
     newGrid[emptyTileIndex] = createTile(newValue);
     return newGrid;
   }
+
   return grid;
 };
 
@@ -43,10 +46,6 @@ const gridWalker = {
   down: {
     init: (i: number) => 11 - i,
     next: (idx: number) => (idx > 11 ? null : idx + 4),
-  },
-  up: {
-    init: (i: number) => i + 4,
-    next: (idx: number) => (idx < 4 ? null : idx - 4),
   },
   left: {
     init: (i: number) => ((i * 4) % 15) + 1,
@@ -56,12 +55,16 @@ const gridWalker = {
     init: (i: number) => 14 - ((i * 4) % 15),
     next: (idx: number) => ((idx + 1) % 4 === 0 ? null : idx + 1),
   },
+  up: {
+    init: (i: number) => i + 4,
+    next: (idx: number) => (idx < 4 ? null : idx - 4),
+  },
 };
 
 type DirectionEnum = keyof typeof gridWalker;
 
 const initializeGrid = (): Tile[] => {
-  const initialGrid: Tile[] = Array(16)
+  const initialGrid: Tile[] = Array.from({ length: 16 })
     .fill(null)
     .map(() => createTile(0));
 
@@ -103,8 +106,8 @@ const slide = (tilesInLine: Tile[]) => {
       // Create a new tile object for the merged result, preserving the ID of the first tile
       newTiles.push({
         id: currentTile.id,
-        value: mergedValue,
         prevValue: null,
+        value: mergedValue,
       });
       currentScore += mergedValue;
       i++; // Skip the next tile as it's merged
@@ -127,8 +130,8 @@ const slide = (tilesInLine: Tile[]) => {
   );
 
   return {
-    newTilesInLine: newTiles,
     changed: hasChanged,
+    newTilesInLine: newTiles,
     scoreIncrease: currentScore,
   };
 };
@@ -163,16 +166,30 @@ const simulateMove = (gridToSimulate: Tile[], direction: DirectionEnum) => {
       }
     }
   }
+
   return changed;
 };
 
 const checkGameOver = (currentGrid: Tile[]) => {
-  if (currentGrid.some((tile) => tile.value === 0)) return false;
+  if (currentGrid.some((tile) => tile.value === 0)) {
+    return false;
+  }
 
-  if (simulateMove(currentGrid, 'left')) return false;
-  if (simulateMove(currentGrid, 'right')) return false;
-  if (simulateMove(currentGrid, 'up')) return false;
-  if (simulateMove(currentGrid, 'down')) return false;
+  if (simulateMove(currentGrid, 'left')) {
+    return false;
+  }
+
+  if (simulateMove(currentGrid, 'right')) {
+    return false;
+  }
+
+  if (simulateMove(currentGrid, 'up')) {
+    return false;
+  }
+
+  if (simulateMove(currentGrid, 'down')) {
+    return false;
+  }
 
   return true;
 };
@@ -191,7 +208,7 @@ const useGameLogic = () => {
 
   const [highScore, setHighScore] = useState(0);
 
-  const [gameState, setGameState] = useState<GameState>(() => {
+  const [gameState, setGameState] = useState<GameStateEnum>(() => {
     const savedState = localStorage.getItem('2048-game-state');
     return savedState ? JSON.parse(savedState).gameState : GameState.Playing;
   });
@@ -230,14 +247,15 @@ const useGameLogic = () => {
   // );
 
   const checkGameWon = useCallback((currentGrid: Tile[]) => {
-    return currentGrid.some((tile) => tile.value === 2048);
+    return currentGrid.some((tile) => tile.value === 2_048);
   }, []);
 
   const move = useCallback(
     (direction: DirectionEnum) => {
       if (gameState !== GameState.Playing && gameState !== GameState.Endless) {
-        return { finalGrid: grid, changed: false, scoreIncrease: 0 };
+        return { changed: false, finalGrid: grid, scoreIncrease: 0 };
       }
+
       let changed = false;
       let totalScoreIncrease = 0;
       let newGrid = grid.map((tile) => {
@@ -250,31 +268,37 @@ const useGameLogic = () => {
         if (newGrid[fromTileIdx].value === 0) {
           continue;
         }
+
         let toTileIdx = null;
         let fuse = 0;
         while (true) {
           if (fuse++ > 100) {
             break;
           }
-          const possibleNewTileIdx: number | null = gridWalker[direction].next(
+
+          const possibleNewTileIdx: null | number = gridWalker[direction].next(
             isNull(toTileIdx) ? fromTileIdx : toTileIdx,
           );
 
           if (isNull(possibleNewTileIdx)) {
             break;
           }
+
           if (newGrid[possibleNewTileIdx].value === 0) {
             toTileIdx = possibleNewTileIdx;
             continue;
           }
+
           if (
             isNull(newGrid[possibleNewTileIdx].prevValue) &&
             newGrid[possibleNewTileIdx].value === newGrid[fromTileIdx].value
           ) {
             toTileIdx = possibleNewTileIdx;
           }
+
           break;
         }
+
         if (!isNull(toTileIdx)) {
           changed = true;
           const tile = newGrid[fromTileIdx];
@@ -283,6 +307,7 @@ const useGameLogic = () => {
             tile.value += newGrid[toTileIdx].value;
             totalScoreIncrease += tile.value;
           }
+
           newGrid[toTileIdx] = tile;
           newGrid[fromTileIdx] = createTile(0);
         }
@@ -303,6 +328,7 @@ const useGameLogic = () => {
             setHighScore(newScore);
             localStorage.setItem('2048-high-score', String(newScore));
           }
+
           return newScore;
         });
 
@@ -310,8 +336,8 @@ const useGameLogic = () => {
       }
 
       return {
-        finalGrid: newGrid,
         changed,
+        finalGrid: newGrid,
         scoreIncrease: totalScoreIncrease,
         // isGameOver,
         // isGameWon,
@@ -323,19 +349,19 @@ const useGameLogic = () => {
 
   // Save game state to localStorage whenever it changes
   useEffect(() => {
-    const gameStateToSave = { grid, score, gameState };
+    const gameStateToSave = { gameState, grid, score };
     localStorage.setItem('2048-game-state', JSON.stringify(gameStateToSave));
   }, [grid, score, gameState]);
 
   return {
-    grid,
-    score,
-    highScore,
+    continueGame,
     gameState,
+    grid,
+    highScore,
     initializeGrid,
     move,
     restartGame,
-    continueGame,
+    score,
   };
 };
 
