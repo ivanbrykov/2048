@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "togetherai": {
+      "models": {
+        "openai/gpt-oss-120b": {
+          "name": "GPT OSS 120B"
+        }
+      }
+    }
+  }
+}

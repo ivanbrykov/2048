@@ -2,19 +2,12 @@ import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { HelpCircle, Play, RotateCcw, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import FocusLock from 'react-focus-lock';
 import useGameLogic, { GameState } from './hooks/useGameLogic';
 
 function App() {
-  const {
-    grid,
-    score,
-    highScore,
-    gameState,
-    move,
-    setGrid,
-    restartGame,
-    continueGame,
-  } = useGameLogic();
+  const { grid, score, highScore, gameState, move, restartGame, continueGame } =
+    useGameLogic();
 
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
@@ -24,16 +17,13 @@ function App() {
     (direction: 'left' | 'right' | 'up' | 'down') => {
       if (gameState === GameState.GameOver || gameState === GameState.GameWon)
         return;
-      const { finalGrid, changed } = move(direction);
-      if (changed) {
-        setGrid(finalGrid);
-      }
+      move(direction);
       // for(let i=0;i<4;i++){
       //   console.log(`🚀 ~ App ~ finalGrid row ${i}:`, finalGrid.slice(i*4,i*4+4).map((tile) => `${tile.id}:${tile.value}`).join(' '));
       // }
       // console.log('--------------------------------------------------------------------');
     },
-    [gameState, move, setGrid],
+    [gameState, move],
   );
 
   const handleKeyDown = useCallback(
@@ -109,26 +99,15 @@ function App() {
     };
   }, [handleKeyDown]);
 
-  useEffect(() => {
-    if (showHelp) {
-      const helpContent = document.getElementById('help-content');
-      if (helpContent) {
-        helpContent.style.display = 'block';
-      }
-    } else {
-      const helpContent = document.getElementById('help-content');
-      if (helpContent) {
-        helpContent.style.display = 'none';
-      }
-    }
-  }, [showHelp]);
-
   return (
     <>
       <button
         type="button"
         onClick={() => setShowHelp(true)}
-        className="absolute top-4 right-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors z-1 text-white"
+        className="absolute top-4 right-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors z-10 text-white"
+        aria-label="Open help"
+        aria-haspopup="dialog"
+        aria-controls="help-content-modal"
       >
         <HelpCircle className="w-8 h-8" />
       </button>
@@ -138,10 +117,18 @@ function App() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="mb-4 text-2xl font-bold">Score: {score}</div>
-        <div className="mb-4 text-xl font-bold">High Score: {highScore}</div>
+        <div className="mb-4 text-2xl font-bold" aria-live="polite">
+          Score: {score}
+        </div>
+        <div className="mb-4 text-xl font-bold" aria-live="polite">
+          High Score: {highScore}
+        </div>
         <div className="w-[90vw] h-[90vw] md:w-[600px] md:h-[600px] @container/main relative flex flex-col">
-          <div className="relative gap-[3cqw] bg-gray-700 p-[3cqw] rounded-lg grow">
+          <div
+            className="relative gap-[3cqw] bg-gray-700 p-[3cqw] rounded-lg grow"
+            role="grid"
+            aria-label="Game board"
+          >
             {grid.map((tile, index) => {
               const y = Math.floor(index / 4);
               const x = index % 4;
@@ -149,6 +136,10 @@ function App() {
               return (
                 <motion.div
                   key={tile.id}
+                  role="gridcell"
+                  aria-label={`Row ${y + 1} Column ${x + 1}. Value ${tile.value}`}
+                  aria-hidden={tile.value === 0}
+                  tabIndex={tile.value !== 0 ? 0 : -1}
                   layout
                   {...(tile.value !== 0 && {
                     initial: { scale: 0, opacity: 0 },
@@ -181,6 +172,7 @@ function App() {
               type="button"
               onClick={restartGame}
               className="mt-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+              aria-label="Restart game"
             >
               <RotateCcw className="w-8 h-8" />
             </button>
@@ -195,6 +187,7 @@ function App() {
                 type="button"
                 onClick={continueGame}
                 className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+                aria-label="Continue playing"
               >
                 <Play className="w-8 h-8" />
               </button>
@@ -202,6 +195,7 @@ function App() {
                 type="button"
                 onClick={restartGame}
                 className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+                aria-label="Restart game"
               >
                 <RotateCcw className="w-8 h-8" />
               </button>
@@ -210,25 +204,35 @@ function App() {
         )}
 
         {showHelp && (
-          <div className="absolute inset-0 bg-gray-800/90 backdrop-blur-xs flex flex-col items-center justify-center z-30 p-4">
-            <div className="bg-gray-700 p-6 rounded-lg max-w-lg w-full relative">
-              <button
-                type="button"
-                onClick={() => setShowHelp(false)}
-                className="absolute top-2 right-2 p-3 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors text-white"
-              >
-                <X />
-              </button>
-              <div
-                id="help-content-modal"
-                // biome-ignore lint/security/noDangerouslySetInnerHtml: it's ok
-                dangerouslySetInnerHTML={{
-                  __html:
-                    document.getElementById('help-content')?.innerHTML || '',
-                }}
-              />
+          <FocusLock returnFocus autoFocus>
+            <div
+              className="absolute inset-0 bg-gray-800/90 backdrop-blur-xs flex flex-col items-center justify-center z-30 p-4"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Help"
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setShowHelp(false);
+              }}
+            >
+              <div className="bg-gray-700 p-6 rounded-lg max-w-lg w-full relative">
+                <button
+                  type="button"
+                  onClick={() => setShowHelp(false)}
+                  aria-label="Close help"
+                  className="absolute top-2 right-2 p-3 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors text-white"
+                >
+                  <X />
+                </button>
+                <div
+                  id="help-content-modal"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      document.getElementById('help-content')?.innerHTML || '',
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          </FocusLock>
         )}
       </div>
     </>

@@ -256,15 +256,9 @@ const useGameLogic = () => {
           if (fuse++ > 100) {
             break;
           }
-          console.log('WHILE!', direction, fuse);
           const possibleNewTileIdx: number | null = gridWalker[direction].next(
             isNull(toTileIdx) ? fromTileIdx : toTileIdx,
           );
-          console.log('🚀 ~ useGameLogic ~ possibleNewTileIdx:', {
-            toTileIdx,
-            fromTileIdx,
-            possibleNewTileIdx,
-          });
 
           if (isNull(possibleNewTileIdx)) {
             break;
@@ -340,7 +334,6 @@ const useGameLogic = () => {
     gameState,
     initializeGrid,
     move,
-    setGrid,
     restartGame,
     continueGame,
   };
