@@ -3,7 +3,7 @@
     "clsx": "^2.1.1",
     "es-toolkit": "^1.39.8",
     "framer-motion": "^12.23.12",
-    "lucide-react": "^0.537.0",
+    "lucide-react": "^0.553.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-focus-lock": "^2.13.6",
